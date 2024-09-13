@@ -9,4 +9,14 @@ contract Voting {
         uint noCount;
     }
     
+    Proposal[] public proposals;
+
+    function newProposal(address _targetAddr, bytes memory  _data) external{
+        Proposal memory addProposal;
+        addProposal.target = _targetAddr;
+        addProposal.data = _data;
+        addProposal.yesCount = 0;
+        addProposal.noCount = 0;
+        proposals.push(addProposal);
+    }
 }
