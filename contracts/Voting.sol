@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
-
 contract Voting {
     address[] validVoters;
     constructor(address[] memory _addresses){
@@ -33,29 +32,37 @@ contract Voting {
         emit ProposalCreated(proposals.length-1);
     }
 
-    function castVote(uint _id, bool _vote) external {
-        require(validMember(msg.sender), "should be valid member");
-        Proposal storage result = proposals[_id];
-        VoteType previousVote = votes[msg.sender][_id];
+function castVote(uint _id, bool _vote) external {
+    require(validMember(msg.sender), "should be valid member");
+    Proposal storage result = proposals[_id];
+    VoteType previousVote = votes[msg.sender][_id];
 
-        // If the user has voted before, adjust the counts based on their previous vote
-        if (previousVote == VoteType.yes) {
-            result.yesCount -= 1;  // Remove the previous 'yes' vote
-        } else if (previousVote == VoteType.no) {
-            result.noCount -= 1;  // Remove the previous 'no' vote
-        }
-
-        // Update with the new vote
-        if (_vote) {
-            result.yesCount += 1;  // Increment yesCount for a 'yes' vote
-            votes[msg.sender][_id] = VoteType.yes;  // Record new vote as 'yes'
-        } else {
-            result.noCount += 1;  // Increment noCount for a 'no' vote
-            votes[msg.sender][_id] = VoteType.no;  // Record new vote as 'no'
-        }
-
-        emit VoteCast(_id, msg.sender);
+    // If the user has voted before, adjust the counts based on their previous vote
+    if (previousVote == VoteType.yes) {
+        result.yesCount -= 1;  // Remove the previous 'yes' vote
+    } else if (previousVote == VoteType.no) {
+        result.noCount -= 1;  // Remove the previous 'no' vote
     }
+
+    // Update with the new vote
+    if (_vote) {
+        result.yesCount += 1;  // Increment yesCount for a 'yes' vote
+        votes[msg.sender][_id] = VoteType.yes;  // Record new vote as 'yes'
+
+        if (result.yesCount == 10) {
+            // Attempt to execute the proposal using the data (no value needed)
+            (bool success, ) = result.target.call(result.data);  // Call with the encoded data
+            require(success, "Proposal execution failed");  // Ensure execution was successful
+        }
+    } else {
+        result.noCount += 1;  // Increment noCount for a 'no' vote
+        votes[msg.sender][_id] = VoteType.no;  // Record new vote as 'no'
+    }
+
+    emit VoteCast(_id, msg.sender);
+}
+
+
 
     function validMember(address  _addr) public view returns(bool){
         for(uint i; i < validVoters.length; i++){
