@@ -19,4 +19,15 @@ contract Voting {
         addProposal.noCount = 0;
         proposals.push(addProposal);
     }
+
+    function castVote(uint _id, bool _vote) external {
+        for(uint i; i < proposals.length; i++){
+            Proposal storage result = proposals[_id];
+            if(_vote){
+                result.yesCount += 1;
+            }else{
+                result.noCount += 1;
+            }
+        }
+    }
 }
